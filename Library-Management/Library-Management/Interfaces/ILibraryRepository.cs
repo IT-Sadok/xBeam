@@ -4,12 +4,13 @@ namespace Library_Management.Interfaces
 {
     public interface ILibraryRepository
     {
-        void AddBook(Book book);
-        void RemoveBook(string id);
+        string AddBook(Book book);
+        string RemoveBook(string id);
         List<Book> SearchBooks(string query);
         List<Book> GetAvailableBooks();
-        void BorrowBook(string id);
-        void ReturnBook(string id);
+        List<Book> GetAllBooks();
+        string BorrowBook(string id);
+        string ReturnBook(string id);
         void SaveChanges();
     }
 }

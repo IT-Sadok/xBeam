@@ -11,7 +11,7 @@ namespace Library_Management.Models
         public string Id { get; set; }
         public string Title { get; set; }
         public string Author { get; set; }
-        public string YearRelease { get; set; }
+        public int YearRelease { get; set; }
         public BookStatus BookStatus;
     }
 }

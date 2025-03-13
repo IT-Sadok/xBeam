@@ -6,7 +6,7 @@ namespace Library_Management
 {
     public class LibraryRepository : ILibraryRepository
     {
-        private readonly string _filePath = "library.json";
+        private readonly string _filePath = Path.Combine(Environment.CurrentDirectory, "Library.json"); 
         private List<Book> _books;
 
         public LibraryRepository ()
@@ -18,34 +18,39 @@ namespace Library_Management
             }
             else
             {
-                _books = new List<Book> ();
+                _books = new List<Book>(); 
+                using (FileStream fs = File.Create(_filePath))
+                using (StreamWriter jsonStream = new StreamWriter(fs))
+                {
+                    var jsonSerializer = new JsonSerializer();
+                    jsonSerializer.Serialize(jsonStream, _books);
+                }
             }    
         }
         
-        public void AddBook(Book book)
+        public string AddBook(Book book)
         {
             _books.Add(book);
             SaveChanges();
+            return "-*- The book is added! -*-";
         }
 
-        public void BorrowBook(string id)
+        public string BorrowBook(string id)
         {
             var book = _books.FirstOrDefault(c => c.Id == id);
             if (book == null)
             {
-                Console.WriteLine("There are no book with such code");
-                return;
+                return "-*- There are no book with such code -*-"; 
             }
 
             if (book.BookStatus == BookStatus.Borrowed)
             {
-                Console.WriteLine("This book is already taken");
-                return;
+                return "-*- This book is already taken -*-";
             }
 
             book.BookStatus = BookStatus.Borrowed;
             SaveChanges();
-            Console.WriteLine("You have succesfully borrowed the book");
+            return "-*- You have succesfully borrowed the book -*-";
         }
 
         public List<Book> GetAvailableBooks()
@@ -54,43 +59,39 @@ namespace Library_Management
             return availableBooks;
         }
 
+        public List<Book> GetAllBooks()
+        {
+            return _books;
+        }
+
         public List<Book> SearchBooks(string query)
         {
             return _books.Where(c => c.Title.Contains(query) || c.Author.Contains(query)).ToList();
         }
 
-        public void RemoveBook(string id)
+        public string RemoveBook(string id)
         {
             var book = _books.FirstOrDefault(c => c.Id == id);
             if (book == null)
-            {
-                Console.WriteLine("There are no book with such code");
-                return;
-            }
+                return "-*- There are no book with such code -*-";
 
             _books.Remove(book);
             SaveChanges();
-            Console.WriteLine("You have succesfully removed the book");
+            return "-*- The book has been removed! -*-";
         }
 
-        public void ReturnBook(string id)
+        public string ReturnBook(string id)
         {
             var book = _books.FirstOrDefault(c => c.Id == id);
             if (book == null)
-            {
-                Console.WriteLine("There are no book with such code");
-                return;
-            }
+                return "-*- There are no book with such code -*-";
 
             if (book.BookStatus == BookStatus.Available)
-            {
-                Console.WriteLine("This book is still available");
-                return;
-            }
+                return "-*- This book is still available -*-";
 
             book.BookStatus = BookStatus.Available;
             SaveChanges();
-            Console.WriteLine("Thank you for returning the book");
+            return "-*- Thank you for returning the book -*-";
         }
 
         public void SaveChanges()
