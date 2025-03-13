@@ -12,6 +12,6 @@ namespace Library_Management.Models
         public string Title { get; set; }
         public string Author { get; set; }
         public string YearRelease { get; set; }
-        public enum BookStatus;
+        public BookStatus BookStatus;
     }
 }
