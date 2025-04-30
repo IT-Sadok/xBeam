@@ -44,7 +44,7 @@ internal class Program
                 case "3":
                     Console.Write("Enter the Title or the Author: ");
                     string query = Console.ReadLine();
-                    var foundBooks = libService.SearchBooks(query);
+                    var foundBooks = libService.SearchBooks(query).Data;
                     if (foundBooks.Count < 1)
                     { Console.WriteLine("-*- Sorry, we can't find such book. Try something else -*-"); break; }
                     Console.WriteLine("What we found:");
@@ -52,13 +52,13 @@ internal class Program
                     break;
 
                 case "4":
-                    var allBooks = libService.GetAllBooks();
+                    var allBooks = libService.GetAllBooks().Data;
                     Console.WriteLine("What we found:");
                     allBooks.ForEach(b => Console.WriteLine($"Code: {b.Id}. Author: {b.Author}. Title: {b.Title}. Year:{b.YearRelease}. Status: {b.BookStatus}"));
                     break;
 
                 case "5":
-                    var availableBooks = libService.GetAvailableBooks();
+                    var availableBooks = libService.GetAvailableBooks().Data;
                     if (availableBooks.Count < 1)
                     { Console.WriteLine("-*- Sorry, we don't have available bookd right now -*-"); break; }
                     Console.WriteLine("Available books:");

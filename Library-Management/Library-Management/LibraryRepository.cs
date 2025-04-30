@@ -18,13 +18,12 @@ public class LibraryRepository : ILibraryRepository
         }
         else
         {
-            _books = new List<Book>(); 
-            using (FileStream fs = File.Create(_filePath))
-            using (StreamWriter jsonStream = new StreamWriter(fs))
-            {
-                var jsonSerializer = new JsonSerializer();
-                jsonSerializer.Serialize(jsonStream, _books);
-            }
+            _books = new List<Book>();
+            using FileStream fs = File.Create(_filePath);
+            using StreamWriter jsonStream = new StreamWriter(fs);
+            
+            var jsonSerializer = new JsonSerializer();
+            jsonSerializer.Serialize(jsonStream, _books);
         }    
     }
     

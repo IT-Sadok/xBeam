@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace Library_Management;
 
@@ -76,11 +77,23 @@ public class LibraryService : ILibraryService
         return response;
     }
 
-    public List<Book> GetAvailableBooks() => _repository.GetAvailableBooks();
+    public ServiceResponse<List<Book>> GetAvailableBooks()
+    {
+        var books = _repository.GetAvailableBooks();
+        return new ServiceResponse<List<Book>> { Data = books };
+    }
 
-    public List<Book> GetAllBooks() => _repository.GetAllBooks();
+    public ServiceResponse<List<Book>> GetAllBooks()
+    {
+        var allBooks = _repository.GetAllBooks();
+        return new ServiceResponse<List<Book>> { Data = allBooks };
+    }
 
-    public List<Book> SearchBooks(string query) => _repository.SearchBooks(query);
+    public ServiceResponse<List<Book>> SearchBooks(string query)
+    {
+        var books = _repository.SearchBooks(query);
+        return new ServiceResponse<List<Book>> { Data = books };
+    }
 
     public ServiceResponse<Book> BorrowBook(string id)
     {
