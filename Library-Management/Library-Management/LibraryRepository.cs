@@ -28,63 +28,71 @@ public class LibraryRepository : ILibraryRepository
         }    
     }
     
-    public ServiceResponse<Book> AddBook(Book book)
+    public void Add(Book newBook)
     {
-        var response = new ServiceResponse<Book>();
-
         try
         {
-            _books.Add(book);
-            response.Data = book;
-            response.Message = "-*- The book is added successfully -*-";
+            _books.Add(newBook);
             SaveChanges();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            response.Success = false;
-            response.Message = $"Error: {ex.Message}";
+            throw;
         }
-
-        return response;
     }
 
-    public ServiceResponse<Book> BorrowBook(string id)
+    public Book GetBookById(string id)
     {
-        var response = new ServiceResponse<Book>();
-
         try
         {
-            var book = _books.FirstOrDefault(c => c.Id == id);
-            if (book == null)
-            {
-                response.Message = "-*- There are no book with such code -*-";
-                response.Success = false;
-                return response;
-            }
+            return _books.FirstOrDefault(c => c.Id == id);
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
 
-            if (book.BookStatus == BookStatus.Borrowed)
+    public void Update(Book book)
+    {
+        try
+        {
+            var existingBook = _books.FirstOrDefault(b => b.Id == book.Id);
+            if (existingBook != null)
             {
-                response.Message = "-*- This book is already taken -*-";
-                response.Success = false;
-                return response;
+                existingBook.Title = book.Title;
+                existingBook.Author = book.Author;
+                existingBook.YearRelease = book.YearRelease;
+                existingBook.BookStatus = book.BookStatus;
             }
-
-            book.BookStatus = BookStatus.Borrowed;
-            response.Message = "-*- You have succesfully borrowed the book -*-";
             SaveChanges();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            response.Success = false;
-            response.Message = $"Error: {ex.Message}";
+            throw;
         }
+    }
 
-        return response;
+    public void DeleteBook(string id)
+    {
+        try
+        {
+            var book = _books.FirstOrDefault(b => b.Id == id);
+            if (book != null)
+            {
+                _books.Remove(book);
+                SaveChanges();
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 
     public List<Book> GetAvailableBooks()
     {
-        var availableBooks = _books.Where(c=>c.BookStatus == BookStatus.Available).ToList();
+        var availableBooks = _books.Where(c => c.BookStatus == BookStatus.Available).ToList();
         return availableBooks;
     }
 
@@ -98,68 +106,6 @@ public class LibraryRepository : ILibraryRepository
         return _books.Where(c => c.Title.Contains(query) || c.Author.Contains(query)).ToList();
     }
 
-    public ServiceResponse<Book> RemoveBook(string id)
-    {
-        var response = new ServiceResponse<Book>();
-
-        try
-        {
-            var book = _books.FirstOrDefault(c => c.Id == id);
-            if (book == null)
-            {
-                response.Message = "-*- There are no book with such code -*-";
-                response.Success = false;
-                return response;
-            }
-
-            _books.Remove(book);
-
-            book.BookStatus = BookStatus.Borrowed;
-            response.Message = "-*- The book has been succesfully removed! -*-";
-            SaveChanges();
-        }
-        catch (Exception ex)
-        {
-            response.Success = false;
-            response.Message = $"Error: {ex.Message}";
-        }
-
-        return response;
-    }
-
-    public ServiceResponse<Book> ReturnBook(string id)
-    {
-        var response = new ServiceResponse<Book>();
-
-        try
-        {
-            var book = _books.FirstOrDefault(c => c.Id == id);
-            if (book == null)
-            {
-                response.Message = "-*- There are no book with such code -*-";
-                response.Success = false;
-                return response;
-            }
-            if (book.BookStatus == BookStatus.Available)
-            {
-                response.Message = "-*- This book is still available -*-";
-                response.Success = false;
-                return response;
-            }
-            _books.Remove(book);
-
-            book.BookStatus = BookStatus.Available;
-            response.Message = "-*- Thank you for returning the book -*-";
-            SaveChanges();
-        }
-        catch (Exception ex)
-        {
-            response.Success = false;
-            response.Message = $"Error: {ex.Message}";
-        }
-
-        return response;
-    }
 
     public void SaveChanges()
     {

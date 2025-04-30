@@ -4,12 +4,12 @@ namespace Library_Management.Interfaces;
 
 public interface ILibraryRepository
 {
-    ServiceResponse<Book> AddBook(Book book);
-    ServiceResponse<Book> RemoveBook(string id);
     List<Book> SearchBooks(string query);
     List<Book> GetAvailableBooks();
     List<Book> GetAllBooks();
-    ServiceResponse<Book> BorrowBook(string id);
-    ServiceResponse<Book> ReturnBook(string id);
+    void Add(Book book);
+    Book GetBookById(string id);
+    void Update(Book book);
+    void DeleteBook(string id);
     void SaveChanges();
 }
