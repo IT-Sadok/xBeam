@@ -32,13 +32,13 @@ internal class Program
                     string author = Console.ReadLine();
                     Console.Write("Year of Release: ");
                     int year = int.Parse(Console.ReadLine());
-                    Console.WriteLine(libService.AddBook(title, author, year));
+                    Console.WriteLine(libService.AddBook(title, author, year).Message);
                     break;
 
                 case "2":
                     Console.Write("ID of the book: ");
                     string removeId = Console.ReadLine();
-                    Console.WriteLine(libService.RemoveBook(removeId));
+                    Console.WriteLine(libService.RemoveBook(removeId).Message);
                     break;
 
                 case "3":
@@ -68,13 +68,13 @@ internal class Program
                 case "6":
                     Console.Write("ID of the book to borrow: ");
                     string borrowId = Console.ReadLine();
-                    Console.WriteLine(libService.BorrowBook(borrowId));
+                    Console.WriteLine(libService.BorrowBook(borrowId).Message);
                     break;
 
                 case "7":
                     Console.Write("ID of the book for return: ");
                     string returnId = Console.ReadLine();
-                    Console.WriteLine(libService.ReturnBook(returnId));
+                    Console.WriteLine(libService.ReturnBook(returnId).Message);
                     break;
 
                 case "8":

@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Library_Management.Models
+namespace Library_Management.Models;
+
+public enum BookStatus
 {
-    public enum BookStatus
-    {
-        Available = 0,
-        Borrowed = 1
-    }
+    Available = 0,
+    Borrowed = 1
 }

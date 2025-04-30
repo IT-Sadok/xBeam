@@ -2,14 +2,13 @@
 
 namespace Library_Management.Interfaces;
 
-public interface ILibraryRepository
+public interface ILibraryService
 {
-    ServiceResponse<Book> AddBook(Book book);
+    ServiceResponse<Book> AddBook(string title, string author, int YearRelease);
     ServiceResponse<Book> RemoveBook(string id);
-    List<Book> SearchBooks(string query);
     List<Book> GetAvailableBooks();
     List<Book> GetAllBooks();
+    List<Book> SearchBooks(string query);
     ServiceResponse<Book> BorrowBook(string id);
     ServiceResponse<Book> ReturnBook(string id);
-    void SaveChanges();
 }
