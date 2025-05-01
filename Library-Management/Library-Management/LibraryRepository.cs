@@ -6,11 +6,17 @@ namespace Library_Management;
 
 public class LibraryRepository : ILibraryRepository
 {
-    private readonly string _filePath = Path.Combine(Environment.CurrentDirectory, "Library.json"); 
+    private readonly string _filePath; 
     private List<Book> _books;
 
-    public LibraryRepository ()
+    public LibraryRepository (string filePath)
     { 
+        _filePath = filePath;
+        LoadBooks();
+    }
+
+    public void LoadBooks()
+    {
         if (File.Exists(_filePath))
         {
             var json = File.ReadAllText(_filePath);
@@ -19,73 +25,40 @@ public class LibraryRepository : ILibraryRepository
         else
         {
             _books = new List<Book>();
-            using FileStream fs = File.Create(_filePath);
-            using StreamWriter jsonStream = new StreamWriter(fs);
-            
-            var jsonSerializer = new JsonSerializer();
-            jsonSerializer.Serialize(jsonStream, _books);
-        }    
+        }
     }
-    
+
     public void Add(Book newBook)
     {
-        try
-        {
-            _books.Add(newBook);
-            SaveChanges();
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        _books.Add(newBook);
+        SaveChanges();
     }
 
     public Book GetBookById(string id)
     {
-        try
-        {
-            return _books.FirstOrDefault(c => c.Id == id);
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        return _books.FirstOrDefault(c => c.Id == id);
     }
 
     public void Update(Book book)
     {
-        try
+        var existingBook = _books.FirstOrDefault(b => b.Id == book.Id);
+        if (existingBook != null)
         {
-            var existingBook = _books.FirstOrDefault(b => b.Id == book.Id);
-            if (existingBook != null)
-            {
-                existingBook.Title = book.Title;
-                existingBook.Author = book.Author;
-                existingBook.YearRelease = book.YearRelease;
-                existingBook.BookStatus = book.BookStatus;
-            }
-            SaveChanges();
+            existingBook.Title = book.Title;
+            existingBook.Author = book.Author;
+            existingBook.YearRelease = book.YearRelease;
+            existingBook.BookStatus = book.BookStatus;
         }
-        catch (Exception)
-        {
-            throw;
-        }
+        SaveChanges();
     }
 
     public void DeleteBook(string id)
     {
-        try
+        var book = _books.FirstOrDefault(b => b.Id == id);
+        if (book != null)
         {
-            var book = _books.FirstOrDefault(b => b.Id == id);
-            if (book != null)
-            {
-                _books.Remove(book);
-                SaveChanges();
-            }
-        }
-        catch (Exception)
-        {
-            throw;
+            _books.Remove(book);
+            SaveChanges();
         }
     }
 

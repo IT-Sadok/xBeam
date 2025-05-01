@@ -6,7 +6,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        ILibraryRepository repository = new LibraryRepository();
+        ILibraryRepository repository = new LibraryRepository(Path.Combine(Environment.CurrentDirectory, "Library.json"));
         LibraryService libService = new LibraryService(repository);
 
         while (true)
