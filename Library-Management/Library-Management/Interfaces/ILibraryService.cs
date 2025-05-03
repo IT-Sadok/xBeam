@@ -11,4 +11,6 @@ public interface ILibraryService
     ServiceResponse<List<Book>> SearchBooks(string query);
     ServiceResponse<Book> BorrowBook(string id);
     ServiceResponse<Book> ReturnBook(string id);
+    ServiceResponse<Book> EditBook(Book editBook, string title, string author, int YearRelease);
+
 }

@@ -1,16 +1,18 @@
 ﻿using Library_Management.Interfaces;
 using Library_Management.Models;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace Library_Management;
 
 public class LibraryRepository : ILibraryRepository
 {
-    private readonly string _filePath; 
-    private List<Book> _books;
+    private readonly string _filePath;
+    private readonly ConcurrentDictionary<string, Book> _books = new();
+    private readonly SemaphoreSlim _saveSemaphore = new(1, 1);
 
-    public LibraryRepository (string filePath)
-    { 
+    public LibraryRepository(string filePath)
+    {
         _filePath = filePath;
         LoadBooks();
     }
@@ -20,68 +22,68 @@ public class LibraryRepository : ILibraryRepository
         if (File.Exists(_filePath))
         {
             var json = File.ReadAllText(_filePath);
-            _books = JsonConvert.DeserializeObject<List<Book>>(json) ?? new List<Book>();
+            var bookList = JsonConvert.DeserializeObject<List<Book>>(json) ?? new List<Book>();
+            foreach (var book in bookList)
+            {
+                _books.TryAdd(book.Id, book);
+            }
         }
-        else
+    }
+
+    public async Task AddAsync(Book newBook)
+    {
+        if (_books.TryAdd(newBook.Id, newBook))
         {
-            _books = new List<Book>();
+            await SaveChangesAsync();
         }
     }
 
-    public void Add(Book newBook)
+    public Book? GetBookById(string id)
     {
-        _books.Add(newBook);
-        SaveChanges();
+        return _books.TryGetValue(id, out var book) ? book : null;
     }
 
-    public Book GetBookById(string id)
+    public async Task UpdateAsync(Book updatedBook)
     {
-        return _books.FirstOrDefault(c => c.Id == id);
+        _books.AddOrUpdate(updatedBook.Id, updatedBook, (key, oldBook) => updatedBook);
+        await SaveChangesAsync();
     }
 
-    public void Update(Book book)
+    public async Task DeleteBookAsync(string id)
     {
-        var existingBook = _books.FirstOrDefault(b => b.Id == book.Id);
-        if (existingBook != null)
+        if (_books.TryRemove(id, out _))
         {
-            existingBook.Title = book.Title;
-            existingBook.Author = book.Author;
-            existingBook.YearRelease = book.YearRelease;
-            existingBook.BookStatus = book.BookStatus;
-        }
-        SaveChanges();
-    }
-
-    public void DeleteBook(string id)
-    {
-        var book = _books.FirstOrDefault(b => b.Id == id);
-        if (book != null)
-        {
-            _books.Remove(book);
-            SaveChanges();
+            await SaveChangesAsync();
         }
     }
 
     public List<Book> GetAvailableBooks()
     {
-        var availableBooks = _books.Where(c => c.BookStatus == BookStatus.Available).ToList();
+        var availableBooks = _books.Values.Where(c => c.BookStatus == BookStatus.Available).ToList();
         return availableBooks;
     }
 
     public List<Book> GetAllBooks()
     {
-        return _books;
+        return _books.Values.ToList();
     }
 
     public List<Book> SearchBooks(string query)
     {
-        return _books.Where(c => c.Title.Contains(query) || c.Author.Contains(query)).ToList();
+        return _books.Values.Where(c => c.Title.Contains(query) || c.Author.Contains(query)).ToList();
     }
 
-
-    public void SaveChanges()
+    public async Task SaveChangesAsync()
     {
-        var json = JsonConvert.SerializeObject(_books, Formatting.Indented);
-        File.WriteAllText(_filePath, json);
+        await _saveSemaphore.WaitAsync();
+        try
+        {
+            var json = JsonConvert.SerializeObject(_books.Values, Formatting.Indented);
+            await File.WriteAllTextAsync(_filePath, json);
+        }
+        finally
+        {
+            _saveSemaphore.Release();
+        }
     }
 }

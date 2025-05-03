@@ -7,9 +7,9 @@ public interface ILibraryRepository
     List<Book> SearchBooks(string query);
     List<Book> GetAvailableBooks();
     List<Book> GetAllBooks();
-    void Add(Book book);
+    Task AddAsync(Book book);
     Book GetBookById(string id);
-    void Update(Book book);
-    void DeleteBook(string id);
-    void SaveChanges();
+    Task UpdateAsync(Book book);
+    Task DeleteBookAsync(string id);
+    Task SaveChangesAsync();
 }

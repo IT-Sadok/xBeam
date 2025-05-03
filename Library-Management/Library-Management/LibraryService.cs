@@ -1,30 +1,26 @@
 ﻿using Library_Management.Interfaces;
 using Library_Management.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Reflection.Metadata.BlobBuilder;
+using System.Collections.Concurrent;
 
 namespace Library_Management;
 
 public class LibraryService : ILibraryService
 {
     private readonly ILibraryRepository _repository;
+    private static readonly ConcurrentDictionary<string, object> _bookLocks = new();
 
-    public  LibraryService(ILibraryRepository repository)
+    public LibraryService(ILibraryRepository repository)
     {
         _repository = repository;
     }
 
-    public ServiceResponse<Book> AddBook(string title, string author, int YearRelease)
+    public ServiceResponse<Book> AddBook(string title, string author, int yearRelease)
     {
         var response = new ServiceResponse<Book>();
 
         try
         {
-            var newBook = new Book { Id = Guid.NewGuid().ToString(), Title = title, Author = author, YearRelease = YearRelease };
+            var newBook = new Book { Id = Guid.NewGuid().ToString(), Title = title, Author = author, YearRelease = yearRelease };
 
             var existing = _repository.GetBookById(newBook.Id);
             if (existing != null)
@@ -36,7 +32,7 @@ public class LibraryService : ILibraryService
                 };
             }
 
-            _repository.Add(newBook);
+            _repository.AddAsync(newBook);
 
             response.Data = newBook;
             response.Message = "-*- The book is added successfully -*-";
@@ -56,15 +52,13 @@ public class LibraryService : ILibraryService
 
         try
         {
-            var book = _repository.GetBookById(id);
-            if (book == null)
-            {
-                response.Message = "-*- There are no book with such code -*-";
-                response.Success = false;
+            response = CheckBookForNull(id, response);
+            if (response.Success == false)
                 return response;
-            }
 
-            _repository.DeleteBook(id);
+            var book = response.Data;
+
+            _repository.DeleteBookAsync(id);
 
             response.Message = "-*- The book has been succesfully removed! -*-";
         }
@@ -101,16 +95,11 @@ public class LibraryService : ILibraryService
 
         try
         {
-            var book = _repository.GetBookById(id);
+            response = CheckBookForNull(id, response);
+            if (response.Success == false)
+                return response;
 
-            if (book == null)
-            {
-                return new ServiceResponse<Book>
-                {
-                    Success = false,
-                    Message = "-*- There is no book with such code -*-"
-                };
-            }
+            var book = response.Data;
 
             if (book.BookStatus == BookStatus.Borrowed)
             {
@@ -122,7 +111,7 @@ public class LibraryService : ILibraryService
             }
 
             book.BookStatus = BookStatus.Borrowed;
-            _repository.Update(book);
+            _repository.UpdateAsync(book);
             response.Data = book;
             response.Message = "-*- You have successfully borrowed the book -*-";
         }
@@ -144,13 +133,11 @@ public class LibraryService : ILibraryService
 
         try
         {
-            var book = _repository.GetBookById(id);
-            if (book == null)
-            {
-                response.Message = "-*- There are no book with such code -*-";
-                response.Success = false;
+            response = CheckBookForNull(id, response);
+            if (response.Success == false)
                 return response;
-            }
+
+            var book = response.Data;
             if (book.BookStatus == BookStatus.Available)
             {
                 response.Message = "-*- This book is still available -*-";
@@ -159,7 +146,7 @@ public class LibraryService : ILibraryService
             }
 
             book.BookStatus = BookStatus.Available;
-            _repository.Update(book);
+            _repository.UpdateAsync(book);
             response.Message = "-*- Thank you for returning the book -*-";
         }
         catch (Exception ex)
@@ -171,4 +158,61 @@ public class LibraryService : ILibraryService
         return response;
     }
 
+    public ServiceResponse<Book> EditBook(Book editBook, string title, string author, int yearRelease)
+    {
+        var response = new ServiceResponse<Book>();
+
+        try
+        {
+            editBook.Title = title;
+            editBook.Author = author;
+            editBook.YearRelease = yearRelease;
+            _repository.UpdateAsync(editBook);
+            response.Message = "-*- The book is successfully edited! -*-";
+        }
+        catch (Exception ex)
+        {
+            response.Success = false;
+            response.Message = $"Error: {ex.Message}";
+        }
+
+        return response;
+    }
+
+    public ServiceResponse<Book> GetBookById(string id)
+    {
+        var requestedBook = _repository.GetBookById(id);
+        return new ServiceResponse<Book> { Data = requestedBook };
+    }
+
+    public ServiceResponse<Book> CheckBookForNull(string id, ServiceResponse<Book> response)
+    {
+        var requestedBook = _repository.GetBookById(id);
+
+        if (requestedBook == null)
+        {
+            response.Message = "-*- There are no book with such code -*-";
+            response.Success = false;
+        }
+        else
+        {
+            response.Data = requestedBook;
+        }
+
+        return response;
+    }
+
+    public ServiceResponse<Book> CheckBookBeforeEditing(string id)
+    {
+        ServiceResponse<Book> response = CheckBookForNull(id, new ServiceResponse<Book>());
+        if (response.Success == false)
+            return response;
+
+        if (response.Data.BookStatus == BookStatus.Borrowed)
+        {
+            response.Message = "-*- You cannot edit the book while it is borrowed -*-";
+            response.Success = false;
+        }
+        return response;
+    }
 }

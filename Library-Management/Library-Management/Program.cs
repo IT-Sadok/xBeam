@@ -1,6 +1,7 @@
 ﻿using System;
 using Library_Management;
 using Library_Management.Interfaces;
+using Library_Management.Models;
 
 internal class Program
 {
@@ -19,7 +20,8 @@ internal class Program
             Console.WriteLine("5. Show available books");
             Console.WriteLine("6. Borrow a book");
             Console.WriteLine("7. Return a book");
-            Console.WriteLine("8. Exit");
+            Console.WriteLine("8. Edit a book");
+            Console.WriteLine("9. Exit");
             Console.Write("Make your move: ");
 
             string choice = Console.ReadLine();
@@ -60,7 +62,7 @@ internal class Program
                 case "5":
                     var availableBooks = libService.GetAvailableBooks().Data;
                     if (availableBooks.Count < 1)
-                    { Console.WriteLine("-*- Sorry, we don't have available bookd right now -*-"); break; }
+                    { Console.WriteLine("-*- Sorry, we don't have available books right now -*-"); break; }
                     Console.WriteLine("Available books:");
                     availableBooks.ForEach(b => Console.WriteLine($"Code: {b.Id}. Author: {b.Author}. Title: {b.Title}. Year:{b.YearRelease}"));
                     break;
@@ -72,13 +74,34 @@ internal class Program
                     break;
 
                 case "7":
-                    Console.Write("ID of the book for return: ");
+                    Console.Write("ID of the book to return: ");
                     string returnId = Console.ReadLine();
                     Console.WriteLine(libService.ReturnBook(returnId).Message);
                     break;
 
                 case "8":
+                    Console.Write("ID of the book to edit: ");
+                    string editId = Console.ReadLine();
+                    ServiceResponse<Book> response = libService.CheckBookBeforeEditing(editId);
+                    if (response.Success == false)
+                    {
+                        Console.WriteLine(response.Message);
+                        break;
+                    }
+
+                    Console.Write("Title: ");
+                    string editTitle = Console.ReadLine();
+                    Console.Write("Author: ");
+                    string editAuthor = Console.ReadLine();
+                    Console.Write("Year of Release: ");
+                    int editYear = int.Parse(Console.ReadLine());
+
+                    Console.WriteLine(libService.EditBook(response.Data, editTitle, editAuthor, editYear).Message);
+                    break;
+
+                case "9":
                     return;
+
 
                 default:
                     Console.WriteLine("-*- Wrong choice. Try one more time. -*-");
